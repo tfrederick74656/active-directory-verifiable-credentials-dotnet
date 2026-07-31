@@ -134,13 +134,10 @@ namespace WoodgroveHelpdesk.Controllers
         public WoodgroveHelpdesk.Models.PresentationRequest AddRequestedCredential( WoodgroveHelpdesk.Models.PresentationRequest request
                                                 , string credentialType, List<string> acceptedIssuers
                                                 , bool allowRevoked = false, bool validateLinkedDomain = true ) {
-            faceCheck = null;
-            if (Environment.GetEnvironmentVariable("AppSettings__RequireFaceCheck") == "true") {
-                faceCheck = new FaceCheck() {
-                    sourcePhotoClaimName = _configuration.GetValue( "VerifiedID:sourcePhotoClaimName", "photo" ),
-                    matchConfidenceThreshold = _configuration.GetValue( "VerifiedID:matchConfidenceThreshold", 70 )
-                }
-            }
+            bool requireFaceCheck = string.Equals(
+                Environment.GetEnvironmentVariable( "AppSettings__RequireFaceCheck" ),
+                "true",
+                StringComparison.OrdinalIgnoreCase );
             request.requestedCredentials.Add( new RequestedCredential() {
                 type = credentialType,
                 acceptedIssuers = (null == acceptedIssuers ? new List<string>() : acceptedIssuers),
@@ -148,7 +145,12 @@ namespace WoodgroveHelpdesk.Controllers
                     validation = new Validation() {
                         allowRevoked = allowRevoked,
                         validateLinkedDomain = validateLinkedDomain,
-                        faceCheck
+                        faceCheck = requireFaceCheck
+                            ? new FaceCheck() {
+                                sourcePhotoClaimName = _configuration.GetValue( "VerifiedID:sourcePhotoClaimName", "photo" ),
+                                matchConfidenceThreshold = _configuration.GetValue( "VerifiedID:matchConfidenceThreshold", 70 )
+                            }
+                            : null
                     }
                 }
             } );
