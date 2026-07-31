@@ -143,6 +143,10 @@
             {
               "name": "AppSettings__TeamsWebhookURL",
               "value": "...set to incoming webhook if you decide to use a Teams Webhook..."
+            },
+            {
+              "name": "AppSettings__RequireFaceCheck",
+              "value": "true"
             }
           ]
         }
