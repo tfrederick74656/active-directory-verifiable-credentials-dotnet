@@ -21,7 +21,7 @@ IF NOT DEFINED DEPLOYMENT_TARGET (
 
 :: 1. Restore & Publish
 echo Publishing project...
-dotnet publish "%PROJECT_DIR%account-recovery-claim-matching.csproj" ^
+dotnet publish "%PROJECT_DIR%WoodgroveHelpdesk.csproj" ^
   --configuration Release ^
   --output "%DEPLOYMENT_TARGET%" ^
   /p:GenerateFullPaths=true
