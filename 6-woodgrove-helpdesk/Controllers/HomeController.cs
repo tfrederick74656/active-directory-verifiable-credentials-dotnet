@@ -141,10 +141,25 @@ namespace WoodgroveHelpdesk.Controllers
                     validation = new Validation() {
                         allowRevoked = allowRevoked,
                         validateLinkedDomain = validateLinkedDomain,
+                        if (Environment.GetEnvironmentVariable("AppSettings__RequireFaceCheck") == "true")
+                        {
+                            faceCheck = new FaceCheck() {
+                                sourcePhotoClaimName = _configuration.GetValue( "VerifiedID:sourcePhotoClaimName", "photo" ),
+                                matchConfidenceThreshold = _configuration.GetValue( "VerifiedID:matchConfidenceThreshold", 70 )
+                            }
+                        }
+                        else
+                        {
+                            faceCheck = null
+                        }
+                        
+                        
+                        /*
                         faceCheck = new FaceCheck() {
                             sourcePhotoClaimName = _configuration.GetValue( "VerifiedID:sourcePhotoClaimName", "photo" ),
                             matchConfidenceThreshold = _configuration.GetValue( "VerifiedID:matchConfidenceThreshold", 70 )
                         }
+                        */
                     }
                 }
             } );
