@@ -210,7 +210,7 @@ namespace WoodgroveHelpdesk.Controllers
                             displayName = vc.claims[displayNameClaimName].ToString();
                         }
                         expiryDate = vc.expirationDate;
-                        matchConfidenceScore = requireFaceCheck ? vc.faceCheck.matchConfidenceScore : 0
+                        matchConfidenceScore = requireFaceCheck ? vc.faceCheck.matchConfidenceScore : 0;
                     }
                 }
                 if ( string.IsNullOrWhiteSpace( credentialType )) {
