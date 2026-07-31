@@ -185,6 +185,10 @@ namespace WoodgroveHelpdesk.Controllers
                 if (callback.requestStatus != "presentation_verified") {
                     return BadRequest( new { error = "400", error_description = $"Wrong status in cached data" } );
                 }
+                bool requireFaceCheck = string.Equals(
+                    Environment.GetEnvironmentVariable( "AppSettings__RequireFaceCheck" ),
+                    "true",
+                    StringComparison.OrdinalIgnoreCase );
                 // Find the Verified ID credential we asked for and get the first- and last name
                 string didIssuer = null;
                 string linkedDomain = null;
@@ -206,7 +210,7 @@ namespace WoodgroveHelpdesk.Controllers
                             displayName = vc.claims[displayNameClaimName].ToString();
                         }
                         expiryDate = vc.expirationDate;
-                        matchConfidenceScore = vc.faceCheck.matchConfidenceScore;
+                        matchConfidenceScore = requireFaceCheck ? vc.faceCheck.matchConfidenceScore : 0
                     }
                 }
                 if ( string.IsNullOrWhiteSpace( credentialType )) {
