@@ -1,31 +1,116 @@
-# Microsoft Entra Verified ID Samples
+---
+page_type: sample
+languages:
+- dotnet
+products:
+- microsoft entra
+- verified id
+description: "A code sample for prooving identity with face check at a helpdesk, using Entra Verified ID"
+urlFragment: "6-woodgrove-helpdesk"
+---
+# Verified ID Code Sample for Woodgrove Helpdesk
 
-This repo contains a set of Microsoft Entra Verified ID samples
+This sample is show casing identifying yourself at a helpdesk by presenting your [VerifiedEmployee](https://learn.microsoft.com/en-us/entra/verified-id/how-to-use-quickstart-verifiedemployee) card.
+The helpdesk websites require a Face Check together with the presentation for high assurance that the person is who they claim to be before getting support. 
+More info about this pattern can be found [here](https://learn.microsoft.com/en-us/entra/verified-id/helpdesk-with-verified-id).
 
-## Samples
+**Note** - it is a demo app and not a real helpdesk portal.
 
-| Sample | Description |
+## Deploy to Azure
+
+Complete the [setup](#Setup) before deploying to Azure so that you have all the required parameters.
+
+[![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FAzure-Samples%2Factive-directory-verifiable-credentials-dotnet%2Fmain%2F6-woodgrove-helpdesk%2FARMTemplate%2Ftemplate.json)
+
+You need to enter the following parameters:
+
+1. The app name. This needs to be globally unique as it will be part of your URL, like https://your-app-name.azurewebsites.net/
+1. Your DID for your Entra Verified ID authority. After setting up Verified ID, you find your DID [here](https://portal.azure.com/#view/Microsoft_AAD_DecentralizedIdentity/InitialMenuBlade/~/issuerSettingsBlade)
+
+![Deployment Parameters](ReadmeFiles/DeployToAzure.png)
+
+## Using the sample
+
+To use the sample, do the following:
+
+- Open the website in your browser.
+- Step 1
+    - Either click the step 1 button to go to [MyAccount](https://myaccount.microsoft.com) and issue yourself a VerifiedEmployee credential from your company, or click `I already have my card` to advance to step 2.
+- Step 2
+    - Scan the QR code with your Microsoft Authenticator
+    - Select your VerifiedEmployee card
+    - Perform the Face Check on your mobile
+    - Share the credential and the liveness result
+- Step 3
+    - In final step, your email and displayName will show together with your face check score.
+    - The webapp says "a support personnel will be you shortly", but don't wait for too long as this is just a sample....
+
+## Using the sample on a mobile phone
+
+Follow the steps above, with the additions.
+
+- Launch the website in your mobile browser.
+- When clicking on the `I already have my card`, you will be asked to open the Microsoft Authenticator and you have to accept that.
+- After sharing the credential and the Face Check result in the Microsoft Authenticator, manually return to your mobile browser app
+- Click `Continue` in the middle section
+
+## Extending the sample with Microsoft Teams
+
+The sample is prepared to send a message to a Microsoft Teams channel using a [webhook](https://learn.microsoft.com/en-us/microsoftteams/platform/webhooks-and-connectors/what-are-webhooks-and-connectors). 
+
+**Please note: ** this is just a sample to show how this idea of Teams integration can be achieved. This is not a production ready code. For production, use server side logic or use options like Azure Logic apps, that could pick the verification state from the application DB and send out Teams notifications or REST API updates to external systems.
+
+In order to extend the sample, create an [incoming webhook](https://learn.microsoft.com/en-us/microsoftteams/platform/webhooks-and-connectors/how-to/add-incoming-webhook?tabs=newteams%2Cdotnet) and update the app's configuration in your Azure AppService's configuration:
+
+| Key | Value |
 |------|--------|
-| 1-asp-net-core-api-idtokenhint | dotnet sample for using the VC Request Service API to issue and verify verifiable credentials with a credential contract which allows the VC Request API to pass in a payload for the Verifiable Credentials|
-| 2-asp-net-core-api-user-signin | dotnet sample for a developer who wants to provide the signed-in users an option to get and present Verifiable credentials using the VC Request Service API. **Note:** This is different from 1-asp-net-core-api-idtokenhint sample as follows : User sign-in is a requirement to issue credentials since the credentials have claims (first name, last name) based on the signed-in user's idToken.'|
-| 3-asp-net-core-api-b2c | dotnet sample for using the VC Request Service API to issue and verify verifiable credentials in a B2C policy|
-| 5-onboard-with-tap | dotnet sample for onboarding new hire employees and guest users. |
-
-Microsoft provides a simple to use REST API to issue and verify verifiable credentials. You can use the programming language you prefer to the REST API. Instead of needing to understand the different protocols and encryption algorithms for Verifiable Credentials and DIDs you only need to understand how to format a JSON structure as parameter for the VC Request API.
-
-![API Overview](ReadmeFiles/SampleArchitectureOverview.svg)
-
-## Issuance
-
-The documentation for calling the issuance API is available [here](https://learn.microsoft.com/en-us/entra/verified-id/get-started-request-api?tabs=http%2Cissuancerequest%2Cpresentationrequest#issuance-request-example).
-
-## Verification
-
-The documentation for calling the verification API is available [here](https://learn.microsoft.com/en-us/entra/verified-id/get-started-request-api?tabs=http%2Cissuancerequest%2Cpresentationrequest#presentation-request-example).
+| AppSettings__UseTeamsWebhook | "true" |
+| AppSettings__TeamsWebhookURL | URL of the incoming webhook |
 
 ## Setup
 
-Before you can run any of these samples make sure your environment is setup correctly. You can follow the setup instructions [here](https://aka.ms/vcsetup)
+### Entra ID tenant
+
+You need an Entra ID tenant to get this sample to work. You can set up a [free tenant](https://learn.microsoft.com/en-us/entra/identity-platform/quickstart-create-new-tenant) unless you don't have one already. 
+
+### Setup Verified ID
+
+[Setup Verified ID](https://learn.microsoft.com/en-us/entra/verified-id/verifiable-credentials-configure-tenant-quick) in your tenant and enable MyAccount. 
+You do not need to register an app or create a custom Verified ID credential schema.
+
+### Azure subscription
+
+The sample is intended to be deployed to [Azure App Services](https://learn.microsoft.com/en-us/azure/app-service/) 
+and use [Managed Identity](https://learn.microsoft.com/en-us/azure/app-service/overview-managed-identity) for authenticating and acquiring an access token to call Verified ID.
+You don't need to do an app registration in Entra ID.
+
+### Configuring Managed Identity
+
+1. Enable Managed Identity for your App Service app at `Settings` > `Identity`
+1. In portal.azure.com, open the `Cloud Shell` in powershell mode and run the following to grant your MSI service principal the permission to call Verified ID.
+
+```Powershell
+$TenantID="<YOUR TENANTID>"
+$YourAppName="<NAME OF YOUR AZURE WEBAPP>"
+
+#Do not change this values below
+#
+$ApiAppId = "3db474b9-6a0c-4840-96ac-1fceb342124f"
+$PermissionName = "VerifiableCredential.Create.PresentRequest"
+ 
+# Install the module
+Install-Module AzureAD
+
+Connect-AzureAD -TenantId $TenantID
+
+$MSI = (Get-AzureADServicePrincipal -Filter "displayName eq '$YourAppName'")
+
+Start-Sleep -Seconds 10
+
+$ApiServicePrincipal = Get-AzureADServicePrincipal -Filter "appId eq '$ApiAppId'"
+$AppRole = $ApiServicePrincipal.AppRoles | Where-Object {$_.Value -eq $PermissionName -and $_.AllowedMemberTypes -contains "Application"}
+New-AzureAdServiceAppRoleAssignment -ObjectId $MSI.ObjectId -PrincipalId $MSI.ObjectId ` -ResourceId $ApiServicePrincipal.ObjectId -Id $AppRole.Id
+```
 
 ## Troubleshooting
 
@@ -34,13 +119,6 @@ If you are deploying this sample to Azure App Services, then you can view app lo
 - Go to Development Tools, then Extensions
 - Select `+ Add` and add `ASP.NET Core Logging Integration` extension
 - Go to `Log stream` and set `Log level` drop down filter to `verbose`
-- 
-The Log stream console will now contain traces from the deployed.
 
-## Resources
+The Log stream console will now contain traces from the deployed. Don't forget do disable extension when troubleshooting is done.
 
-For more information, see MSAL.NET's conceptual documentation:
-
-- [Quickstart: Register an application with the Microsoft identity platform](https://docs.microsoft.com/azure/active-directory/develop/quickstart-register-app)
-- [Quickstart: Configure a client application to access web APIs](https://docs.microsoft.com/azure/active-directory/develop/quickstart-configure-app-access-web-apis)
-- [Acquiring a token for an application with client credential flows](https://aka.ms/msal-net-client-credentials)
