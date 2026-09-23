@@ -105,7 +105,7 @@ namespace VerifiedIDHelpdesk.Controllers
         }
 
         public VerifiedIDHelpdesk.Models.PresentationRequest CreatePresentationRequest( string stateId = null, string credentialType = null ) {
-            VerifiedIDHelpdesk.Models.PresentationRequest request = new WVerifiedIDHelpdesk.Models.PresentationRequest() {
+            VerifiedIDHelpdesk.Models.PresentationRequest request = new VerifiedIDHelpdesk.Models.PresentationRequest() {
                 includeQRCode = _configuration.GetValue( "VerifiedID:includeQRCode", false ),
                 authority = _configuration["VerifiedID:DidAuthority"],
                 registration = new Registration() {
