@@ -6,12 +6,12 @@
   },
   {
     "name": "AppSettings__CompanyLogo",
-    "value": "https://woodgroveemployee.azurewebsites.net/assets/images/banking/logo/logo.svg",
+    "value": "./logo.svg",
     "slotSetting": false
   },
   {
     "name": "AppSettings__CompanyName",
-    "value": "Woodgrove",
+    "value": "Highmark Health",
     "slotSetting": false
   },
   {
@@ -36,7 +36,7 @@
   },
   {
     "name": "VerifiedID__client_name",
-    "value": "Woodgrove Helpdesk",
+    "value": "Highmark Helpdesk",
     "slotSetting": false
   },
   {
