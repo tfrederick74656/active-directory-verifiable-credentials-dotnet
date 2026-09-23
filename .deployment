@@ -1,4 +1,7 @@
 [config]
 # Kudu honors .deployment only at the repo root.
 # The PROJECT app setting points at the sample's subfolder; cd there and run its deploy.cmd.
-command = cd %PROJECT% && deploy.cmd
+# command = cd %PROJECT% && deploy.cmd
+
+# The above is no longer needed in a single-repo project
+command = deploy.cmd
