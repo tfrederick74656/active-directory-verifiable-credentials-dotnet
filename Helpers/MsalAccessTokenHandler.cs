@@ -8,7 +8,7 @@ using System;
 using Microsoft.Extensions.Logging;
 using Azure.Identity;
 
-namespace WoodgroveHelpdesk.Helpers
+namespace VerifiedIDHelpdesk.Helpers
 {
     public class MsalAccessTokenHandler
     {

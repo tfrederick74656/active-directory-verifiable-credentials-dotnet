@@ -23,9 +23,9 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.Extensions;
 using Azure.Core;
 using Microsoft.AspNetCore.Http;
-using WoodgroveHelpdesk.Models;
+using VerifiedIDHelpdesk.Models;
 
-namespace WoodgroveHelpdesk.Controllers {
+namespace VerifiedIDHelpdesk.Controllers {
     [Route("api/[action]")]
     [ApiController]
     public class CallbackController : Controller

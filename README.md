@@ -8,7 +8,7 @@ products:
 description: "A code sample for prooving identity with face check at a helpdesk, using Entra Verified ID"
 urlFragment: "6-woodgrove-helpdesk"
 ---
-# Verified ID Code Sample for Woodgrove Helpdesk
+# Verified ID Code Sample for Verified ID Helpdesk
 
 This sample is show casing identifying yourself at a helpdesk by presenting your [VerifiedEmployee](https://learn.microsoft.com/en-us/entra/verified-id/how-to-use-quickstart-verifiedemployee) card.
 The helpdesk websites require a Face Check together with the presentation for high assurance that the person is who they claim to be before getting support. 

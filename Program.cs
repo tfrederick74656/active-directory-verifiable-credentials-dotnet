@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.Identity.Web;
 using Microsoft.Identity.Web.UI;
 
-namespace WoodgroveHelpdesk {
+namespace VerifiedIDHelpdesk {
     public class Program {
         public static void Main( string[] args ) {
             var builder = WebApplication.CreateBuilder( args );

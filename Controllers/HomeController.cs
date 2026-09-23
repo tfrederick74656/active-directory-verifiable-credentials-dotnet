@@ -8,10 +8,10 @@ using System.Text;
 using System.Net.Http.Headers;
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Authorization;
-using WoodgroveHelpdesk.Helpers;
-using WoodgroveHelpdesk.Models;
+using VerifiedIDHelpdesk.Helpers;
+using VerifiedIDHelpdesk.Models;
 
-namespace WoodgroveHelpdesk.Controllers
+namespace VerifiedIDHelpdesk.Controllers
 {
     //[Route("api/[controller]/[action]")]
     public class HomeController : Controller
@@ -63,7 +63,7 @@ namespace WoodgroveHelpdesk.Controllers
                     return BadRequest(new { error = accessToken.error, error_description = accessToken.error_description });
                 }
 
-                WoodgroveHelpdesk.Models.PresentationRequest request = CreatePresentationRequest( null, null );
+                VerifiedIDHelpdesk.Models.PresentationRequest request = CreatePresentationRequest( null, null );
                 string jsonString = JsonConvert.SerializeObject( request, Newtonsoft.Json.Formatting.None, new JsonSerializerSettings {
                     NullValueHandling = NullValueHandling.Ignore
                 } );
@@ -104,12 +104,12 @@ namespace WoodgroveHelpdesk.Controllers
             }            
         }
 
-        public WoodgroveHelpdesk.Models.PresentationRequest CreatePresentationRequest( string stateId = null, string credentialType = null ) {
-            WoodgroveHelpdesk.Models.PresentationRequest request = new WoodgroveHelpdesk.Models.PresentationRequest() {
+        public VerifiedIDHelpdesk.Models.PresentationRequest CreatePresentationRequest( string stateId = null, string credentialType = null ) {
+            VerifiedIDHelpdesk.Models.PresentationRequest request = new WVerifiedIDHelpdesk.Models.PresentationRequest() {
                 includeQRCode = _configuration.GetValue( "VerifiedID:includeQRCode", false ),
                 authority = _configuration["VerifiedID:DidAuthority"],
                 registration = new Registration() {
-                    clientName = _configuration.GetValue("VerifiedID:client_name", "Woodgrove Helpdesk"),
+                    clientName = _configuration.GetValue("VerifiedID:client_name", "Verified ID Helpdesk"),
                     purpose = _configuration.GetValue( "VerifiedID:purpose", "To prove your identity" )
                 },
                 callback = new Callback() {
@@ -131,7 +131,7 @@ namespace WoodgroveHelpdesk.Controllers
             AddRequestedCredential( request, credentialType, null, allowRevoked, validateLinkedDomain );
             return request;
         }
-        public WoodgroveHelpdesk.Models.PresentationRequest AddRequestedCredential( WoodgroveHelpdesk.Models.PresentationRequest request
+        public VerifiedIDHelpdesk.Models.PresentationRequest AddRequestedCredential( VerifiedIDHelpdesk.Models.PresentationRequest request
                                                 , string credentialType, List<string> acceptedIssuers
                                                 , bool allowRevoked = false, bool validateLinkedDomain = true ) {
             bool requireFaceCheck = string.Equals(
@@ -141,7 +141,7 @@ namespace WoodgroveHelpdesk.Controllers
             request.requestedCredentials.Add( new RequestedCredential() {
                 type = credentialType,
                 acceptedIssuers = (null == acceptedIssuers ? new List<string>() : acceptedIssuers),
-                configuration = new WoodgroveHelpdesk.Models.Configuration() {
+                configuration = new VerifiedIDHelpdesk.Models.Configuration() {
                     validation = new Validation() {
                         allowRevoked = allowRevoked,
                         validateLinkedDomain = validateLinkedDomain,
@@ -156,7 +156,7 @@ namespace WoodgroveHelpdesk.Controllers
             } );
             return request;
         }
-        public bool IsFaceCheckRequested( WoodgroveHelpdesk.Models.PresentationRequest request ) {
+        public bool IsFaceCheckRequested( VerifiedIDHelpdesk.Models.PresentationRequest request ) {
             foreach( var rc in request.requestedCredentials ) {
                 if ( rc.configuration.validation.faceCheck != null ) {
                     return true;
