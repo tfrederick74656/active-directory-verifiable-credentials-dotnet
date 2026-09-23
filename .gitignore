@@ -356,3 +356,7 @@ appsettings.[Dd]evelopment.json
 [Ss]ervice[Dd]ependencies
 
 .dev/
+
+# Ignore VS Code Directory
+.vscode/extensions.json
+.vscode/settings.json
