@@ -4,6 +4,38 @@
     ViewData["Title"] = $"{Configuration.GetSection( "AppSettings" )["CompanyName"]} HelpDesk";
 }
 
+<style>
+    .app-tile {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        width: 160px;
+        height: 140px;
+        border: 1px solid #ddd;
+        border-radius: 10px;
+        background-color: white;
+        box-shadow: 2px 2px 10px rgba(0,0,0,.15);
+        cursor: pointer;
+        transition: box-shadow .15s ease, transform .15s ease;
+    }
+    .app-tile:hover {
+        box-shadow: 2px 2px 16px rgba(0,0,0,.28);
+        transform: translateY(-2px);
+    }
+    .app-tile__icon {
+        font-size: 36px;
+        margin-bottom: 12px;
+    }
+    .app-tile__label {
+        font-size: 14px;
+        font-weight: bold;
+        color: #3B2E58;
+        text-align: center;
+        padding: 0 10px;
+    }
+</style>
+
 <div style="text-align: center;" >
     <h1>Welcome to @Configuration.GetSection( "AppSettings" )["CompanyName"] Helpdesk portal</h1>
     @if (null != ViewData["displayName"]) {
@@ -13,7 +45,21 @@
         <div id="message">@ViewData["message"]</div>
     </div>
 
-    <div id="card-0" class="verification-card">
+    <div id="card-landing" class="verification-card" style="height:auto; max-width:740px; float:none; margin:0 auto 20px auto;">
+        <div style="font-weight:bold; margin-bottom:20px;">What would you like to do?</div>
+        <div style="display:flex; justify-content:center; gap:25px; flex-wrap:wrap;">
+            <button type="button" id="landing-enroll" class="app-tile">
+                <span class="app-tile__icon" aria-hidden="true">&#128273;</span>
+                <span class="app-tile__label">Get a Verified ID</span>
+            </button>
+            <button type="button" id="landing-verify" class="app-tile">
+                <span class="app-tile__icon" aria-hidden="true">&#9989;</span>
+                <span class="app-tile__label">Verify My Verified ID</span>
+            </button>
+        </div>
+    </div>
+
+    <div id="card-0" class="verification-card" style="display:none;">
         <div style="font-weight:bold; margin-bottom:15px;">Are you currently on a call with the Helpdesk?</div>
         <button type="button" id="flow-on-call" class="button" style="margin-bottom:15px;">Yes, I'm on a call now</button>
         <button type="button" id="flow-before-call" class="button">No, I'm verifying before I call</button>
@@ -86,7 +132,7 @@
             ticketNumber: null
         };
 
-        var ALL_CARD_IDS = ['card-0', 'card-1', 'card-2', 'card-3'];
+        var ALL_CARD_IDS = ['card-landing', 'card-0', 'card-1', 'card-2', 'card-3'];
 
         function dimCard(id) {
             document.getElementById(id).style.display = "none";
@@ -112,6 +158,14 @@
             errorMsg.style.display = (input.value.trim().length > 0 && !isValid) ? "block" : "none";
             return isValid;
         }
+
+        document.getElementById('landing-enroll').addEventListener('click', () => {
+            window.open('https://myaccount.microsoft.com/', '_blank');
+        });
+
+        document.getElementById('landing-verify').addEventListener('click', () => {
+            showCard(0);
+        });
 
         document.getElementById('flow-on-call').addEventListener('click', () => {
             document.getElementById('ticket-number-wrapper').style.display = "block";
@@ -224,6 +278,6 @@
             })();
         }
 
-        showCard(0);
+        showCard('landing');
     </script>
 </div>
