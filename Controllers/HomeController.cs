@@ -80,12 +80,20 @@ namespace VerifiedIDHelpdesk.Controllers
                     JObject requestConfig = JObject.Parse(response);
                     requestConfig.Add(new JProperty("id", request.callback.state));
                     jsonString = JsonConvert.SerializeObject(requestConfig);
+                    // flowType ('onCall' | 'beforeCall') and ticketNumber come from the landing page's
+                    // on-call/before-call selection (see Index.cshtml). They're stashed here so they
+                    // survive through the callback's merge-forward logic and are still available in
+                    // ProcessPresentedCredentials once verification completes.
+                    string flowType = this.Request.Query["flowType"];
+                    string ticketNumber = this.Request.Query["ticketNumber"];
                     //We use in memory cache to keep state about the request. The UI will check the state when calling the presentationResponse method
                     var cacheData = new
                     {
                         status = "request_created",
                         message = "Waiting for QR code to be scanned",
-                        expiry = requestConfig["expiry"].ToString()
+                        expiry = requestConfig["expiry"].ToString(),
+                        flowType = flowType,
+                        ticketNumber = ticketNumber
                     };
                     _cache.Set(request.callback.state, JsonConvert.SerializeObject(cacheData)
                                     , DateTimeOffset.Now.AddSeconds( _configuration.GetValue<int>( "AppSettings:CacheExpiresInSeconds", 300 ) ) );
@@ -156,6 +164,34 @@ namespace VerifiedIDHelpdesk.Controllers
             } );
             return request;
         }
+        // PoC-only helper: POSTs the verification outcome to an Azure Logic App HTTP trigger,
+        // standing in for ServiceNow until the client provides SNOW integration details.
+        // Any failure (network, non-2xx, timeout) is caught and logged here - it must never
+        // propagate back up and fail the user's verification response.
+        private async Task NotifyLogicAppAsync( object payload ) {
+            string logicAppUrl = _configuration["LogicApp:HelpdeskNotificationUrl"];
+            if (string.IsNullOrWhiteSpace( logicAppUrl )) {
+                _log.LogWarning( "LogicApp:HelpdeskNotificationUrl is not configured - skipping notification." );
+                return;
+            }
+            try {
+                string json = JsonConvert.SerializeObject( payload );
+                var client = _httpClientFactory.CreateClient();
+                client.Timeout = TimeSpan.FromSeconds( 10 );
+                HttpResponseMessage res = await client.PostAsync( logicAppUrl, new StringContent( json, Encoding.UTF8, "application/json" ) );
+                if (!res.IsSuccessStatusCode) {
+                    string body = await res.Content.ReadAsStringAsync();
+                    _log.LogError( $"Logic App notification failed: {(int)res.StatusCode} {res.StatusCode} - {body}" );
+                } else {
+                    _log.LogTrace( "Logic App notification sent successfully." );
+                }
+            } catch (Exception ex) {
+                // Swallowed deliberately - a notification failure should never break the live
+                // verification flow for the user standing in front of the helpdesk agent.
+                _log.LogError( $"Exception sending Logic App notification: {ex.Message}" );
+            }
+        }
+
         public bool IsFaceCheckRequested( VerifiedIDHelpdesk.Models.PresentationRequest request ) {
             foreach( var rc in request.requestedCredentials ) {
                 if ( rc.configuration.validation.faceCheck != null ) {
@@ -220,6 +256,11 @@ namespace VerifiedIDHelpdesk.Controllers
                     return BadRequest( new { error = "400", error_description = $"{emailClaimName}/{displayNameClaimName} missing in presented credential." } );
                 }
                 string domain = linkedDomain.Replace("https://", "").Replace("/", "");
+                // flowType/ticketNumber were stashed in the cache at request-creation time (see
+                // PresentationRequest()) and survive here because CallbackController merges new
+                // fields into the existing cached JObject rather than overwriting it.
+                string flowType = cachedData.Value<string>("flowType");
+                string ticketNumber = cachedData.Value<string>("ticketNumber");
                 //
                 var cacheData = new {
                     status = "user_authenticated",
@@ -233,6 +274,26 @@ namespace VerifiedIDHelpdesk.Controllers
                 };
                 _log.LogTrace( $"{cacheData.message}. email={email}" );
                 _cache.Set( id, JsonConvert.SerializeObject( cacheData ) );
+
+                // PoC only: notify a Logic App with the verification outcome in place of a real
+                // ServiceNow integration, until the client provides SNOW connection details.
+                // Awaited (not detached) so failures are reliably logged rather than risking
+                // ASP.NET Core tearing down a background task before it completes - but any
+                // failure here is swallowed inside NotifyLogicAppAsync so it never fails the
+                // user's live verification response.
+                await NotifyLogicAppAsync( new {
+                    username = displayName,
+                    email = email,
+                    result = "verified",
+                    faceCheckScore = matchConfidenceScore,
+                    flowType = flowType,
+                    ticketNumber = ticketNumber,
+                    credentialType = credentialType,
+                    issuer = didIssuer,
+                    linkedDomain = domain,
+                    timestampUtc = DateTime.UtcNow.ToString("o")
+                } );
+
                 return new ContentResult { StatusCode = (int)HttpStatusCode.Created, ContentType = "application/json", Content = JsonConvert.SerializeObject( cacheData ) };
             } catch (Exception ex) {
                 return BadRequest( new { error = "400", error_description = ex.Message } );
