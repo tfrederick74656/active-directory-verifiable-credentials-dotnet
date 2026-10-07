@@ -13,7 +13,23 @@
         <div id="message">@ViewData["message"]</div>
     </div>
 
-    <div id="card-1" class="verification-card">
+    <div id="card-0" class="verification-card">
+        <div style="font-weight:bold; margin-bottom:15px;">Are you currently on a call with the Helpdesk?</div>
+        <button type="button" id="flow-on-call" class="button" style="margin-bottom:15px;">Yes, I'm on a call now</button>
+        <button type="button" id="flow-before-call" class="button">No, I'm verifying before I call</button>
+
+        <div id="ticket-number-wrapper" style="display:none; margin-top:20px; text-align:left;">
+            <label for="ticket-number" style="font-weight:bold;">Enter the ticket number the agent gave you:</label>
+            <input type="text" id="ticket-number" placeholder="e.g. INC0012345"
+                   style="width:100%; box-sizing:border-box; padding:8px; margin-top:8px; margin-bottom:8px;" />
+            <div id="ticket-number-error" style="color:#b00020; font-size:13px; display:none;">
+                Please enter a valid ticket number (e.g. INC0012345).
+            </div>
+            <button type="button" id="ticket-number-continue" class="button" disabled>Continue</button>
+        </div>
+    </div>
+
+    <div id="card-1" class="verification-card" style="display:none;">
         <button type="button" id="get-vc" class="button">Step 1: Get your card at MyAccount to prove your employment</button>
         <p>To get support, you need to have your <a href="https://learn.microsoft.com/en-us/entra/verified-id/verifiable-credentials-configure-tenant-quick#myaccount-available-now-to-simplify-issuance-of-workplace-credentials" target="_blank">
             VerifiedEmployee card</a> with a photo.</p>
@@ -24,14 +40,14 @@
         </div>
     </div>
 
-    <div id="card-2" class="verification-card">
+    <div id="card-2" class="verification-card" style="display:none;">
         <button type="button" id="verify-credential" class="button">Step 2: Present your VerifiedEmployee card</button>
         <p>Use the Authenticator to present your VerifiedEmployee card</p>
         <div id="qrcode" style="text-align:center"></div>
         <a id="check-result" class="skipButton" style="display:none">Continue</a>
     </div>
 
-    <div id="card-3" class="verification-card">
+    <div id="card-3" class="verification-card" style="display:none;">
         <div id="authAppMessage" class="waitingForAuthApp">Step 3: Get support</div>
         <div id="apps-button-wrapper" class="appsWrapper" style="display:none;">
             <p>You have successfully been verified. Please wait and a support personnel will be with you shortly.</p>            
@@ -58,22 +74,65 @@
     <script>
         var qrcode = new QRCode("qrcode", { width: 150, height: 150 });
 
+        // Regex for validating a ServiceNow-style ticket number (e.g. INC0012345).
+        // Confirm this matches the client's actual ServiceNow number format before go-live.
+        var TICKET_NUMBER_PATTERN = /^[A-Za-z]{3}\d{5,}$/;
+
+        // Captures which path the user chose on card-0, and the ticket number if provided.
+        // This is threaded into the presentation request so the backend can decide
+        // whether to create a new ServiceNow ticket or update an existing one by number.
+        var helpdeskFlow = {
+            type: null,          // 'onCall' | 'beforeCall'
+            ticketNumber: null
+        };
+
+        var ALL_CARD_IDS = ['card-0', 'card-1', 'card-2', 'card-3'];
+
         function dimCard(id) {
-            document.getElementById(id).style.opacity = 0.5;
-            document.getElementById(id).style.background = "darkgray";
+            document.getElementById(id).style.display = "none";
         }
         function focusCard(id) {
+            document.getElementById(id).style.display = "flex";
             document.getElementById(id).style.opacity = 1.0;
             document.getElementById(id).style.background = "white";
         }
         function showCard(cardNo) {
-            dimCard('card-1');
-            dimCard('card-2');
-            dimCard('card-3');
-            if (cardNo != '') {
+            ALL_CARD_IDS.forEach(dimCard);
+            if (cardNo !== '') {
                 focusCard(`card-${cardNo}`);
             }
         }
+
+        function validateTicketNumber() {
+            var input = document.getElementById('ticket-number');
+            var continueBtn = document.getElementById('ticket-number-continue');
+            var errorMsg = document.getElementById('ticket-number-error');
+            var isValid = TICKET_NUMBER_PATTERN.test(input.value.trim());
+            continueBtn.disabled = !isValid;
+            errorMsg.style.display = (input.value.trim().length > 0 && !isValid) ? "block" : "none";
+            return isValid;
+        }
+
+        document.getElementById('flow-on-call').addEventListener('click', () => {
+            document.getElementById('ticket-number-wrapper').style.display = "block";
+        });
+
+        document.getElementById('flow-before-call').addEventListener('click', () => {
+            helpdeskFlow.type = 'beforeCall';
+            helpdeskFlow.ticketNumber = null;
+            showCard(1);
+        });
+
+        document.getElementById('ticket-number').addEventListener('input', validateTicketNumber);
+
+        document.getElementById('ticket-number-continue').addEventListener('click', () => {
+            if (!validateTicketNumber()) {
+                return;
+            }
+            helpdeskFlow.type = 'onCall';
+            helpdeskFlow.ticketNumber = document.getElementById('ticket-number').value.trim().toUpperCase();
+            showCard(1);
+        });
 
         document.getElementById('get-vc').addEventListener('click', () => {
             window.open('https://myaccount.microsoft.com', '_blank');
@@ -98,7 +157,7 @@
         function startVerification() {
             showCard(2);
             requestService.onPresentationVerified = credentialPresented;
-            requestService.createPresentationRequest();
+            requestService.createPresentationRequest(helpdeskFlow.type, helpdeskFlow.ticketNumber);
         }
 
         // callback on presentation_verified
@@ -165,6 +224,6 @@
             })();
         }
 
-        showCard(1);
+        showCard(0);
     </script>
 </div>

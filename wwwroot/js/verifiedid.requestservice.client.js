@@ -28,7 +28,7 @@ function RequestService(onDrawQRCode, onNavigateToDeepLink, onRequestRetrieved, 
 
     // function to create a presentation request
     this.createRequest = async function (url) {
-        const response = await fetch(url, {method: 'GET', headers: { 'Accept': 'application/json', 'rsid': this.uuid } });
+        const response = await fetch(url, { method: 'GET', headers: { 'Accept': 'application/json', 'rsid': this.uuid } });
         const respJson = await response.json();
         console.log(respJson);
         if (respJson.error_description) {
@@ -45,9 +45,25 @@ function RequestService(onDrawQRCode, onNavigateToDeepLink, onRequestRetrieved, 
             }
         }
     };
-    this.createPresentationRequest = function () {
+    // flowType: 'onCall' | 'beforeCall'. ticketNumber: the ServiceNow ticket number,
+    // only present/required when flowType is 'onCall'. Both are forwarded to the
+    // backend so it knows whether to create a new ServiceNow ticket or update an
+    // existing one once the presentation is verified.
+    this.createPresentationRequest = function (flowType, ticketNumber) {
         this.requestType = "presentation";
-        this.createRequest(this.apiCreatePresentationRequest)
+        var url = this.apiCreatePresentationRequest;
+        var params = new URLSearchParams();
+        if (flowType) {
+            params.set('flowType', flowType);
+        }
+        if (ticketNumber) {
+            params.set('ticketNumber', ticketNumber);
+        }
+        var queryString = params.toString();
+        if (queryString) {
+            url += '?' + queryString;
+        }
+        this.createRequest(url);
     };
     this.createIssuanceRequest = function () {
         this.requestType = "issuance";
