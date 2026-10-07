@@ -129,10 +129,10 @@ a:hover {
 }
 
 .banner {
-    background: linear-gradient( rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5) ), url(/banner_image01.png);
-    background-position: center top;
+    background: linear-gradient( rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5) ), url(/banner_image02.jpg);
+    background-position: center bottom;
     background-size: cover;
-    height: 85px;
+    height: 200px;
 }
 
 .monospacedText {
